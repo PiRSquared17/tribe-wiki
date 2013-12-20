@@ -1,9 +1,5 @@
-= nadpis = 
-
-Nìjáký text ''italic'' a ''zase'' 
+Nìjáký text italic a zase
 normálnì.
 
+Druhý odstavec.
 
-Poslední øádek.
-
-EOF

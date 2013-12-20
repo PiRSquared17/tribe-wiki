@@ -8,36 +8,44 @@ class TracWikiParser extends RegexParsers {
 
   override def skipWhitespace = false
   
-  def nl:Parser[String] = """\s*(\r\n|\n)""".r ^^ {_.toString}
-  
-  def ascii ="""[A-Za-z0-9]""".r
-  
-  def url = (ascii*) ~ "://" ~ (ascii*);
-  
-  def unicode = """\p{L}""".r
-    
-  def text = """[\p{L}0-9\s\.]*""".r
-    
-  def h1 = """=""" ~ ("""\s+""".r?) ~> text <~  ("""\s+""".r?) ~ """=""" ~ nl
-  
-  def it = """''""" ~> text <~ """''"""
 
-  def inline_element = it | text
   
-  def inline_text:Parser[String] = (inline_element ~ inline_text) ^^ {_.toString}
+  def word:Parser[Element] = {
+    println("word")
+    """[\p{L}0-9_]+""".r }^^ {s => TextElement(s)} 
   
-  def line_of_text = inline_text ~ nl
+  def space:Parser[Element] ={
+    println("space")
+    """[ \t]+|\r\n(?!(?:[ \t]*+\r\n))++""".r  } ^^ (s => SpaceElement())
+ 
   
-  def lines_of_text:Parser[String] = (line_of_text  | lines_of_text) ^^ {_.toString}
+  def punct:Parser[Element] = """[\.,\-:;!?"'`/<>+\(\)\]\[]""".r ^^ {s=>PunctElement(s)}
   
-  def paragraph = (h1?) ~ (lines_of_text?) | lines_of_text
+  def nl:Parser[Element] = {
+    println("nl")
+    """".+""".r} ^^ (s=>SpaceElement()) 
   
+    
   
-  def article = h1 ~ paragraph
+  def par:Parser[Element] = (( word|space|nl|punct)*)  <~ ("""\r\n(?:[ \t]*+\r\n)++""".r) ^^ {s=>ParElement(s)}
+
+  def article = (par*)
   
 }
   
 
+trait Element {
+  
+}
+
+
+case class TextElement(s:String) extends Element 
+
+case class SpaceElement extends Element 
+
+case class ParElement(l:List[Element]) extends Element
+
+case class PunctElement(s:String) extends Element
 
 object TracWikiParser extends TracWikiParser with Application {
   
